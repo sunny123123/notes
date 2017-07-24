@@ -1,2 +1,4 @@
 
-## note some tech blogs
+
+##
+笔记
