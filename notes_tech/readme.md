@@ -1,0 +1,2 @@
+
+## note some tech blogs
