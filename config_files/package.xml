@@ -1,0 +1,44 @@
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+	<id>deploy</id>
+	<formats>
+		<format>dir</format>
+	</formats>
+	<includeBaseDirectory>true</includeBaseDirectory>
+	<fileSets>
+		<fileSet>
+			<directory>src/main/scripts</directory>
+			<includes>
+				<include>call.sh</include>
+			</includes>
+			<outputDirectory>./bin</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/resources</directory>
+			<includes>
+				<include>logback.xml</include>
+				<include>application.properties</include>
+				<include>static</include>
+				<include>templates</include>
+			</includes>
+			<outputDirectory>./etc</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>target/</directory>
+			<includes>
+				<include>${project.artifactId}-${project.version}.jar</include>
+			</includes>
+			<outputDirectory>./libs</outputDirectory>
+		</fileSet>
+	</fileSets>
+
+	<dependencySets>
+		<dependencySet>
+			<useProjectArtifact>true</useProjectArtifact>
+			<outputDirectory>./libs</outputDirectory>
+			<scope>runtime</scope>
+		</dependencySet>
+	</dependencySets>
+</assembly>
