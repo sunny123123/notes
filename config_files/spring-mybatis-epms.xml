@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://cxf.apache.org/jaxws   
+    http://cxf.apache.org/schemas/jaxws.xsd">
+
+	<bean id="epmsDSProxy" class="com.epms.datasource.proxy.EpmsDataSourceProxy"> 
+		<property name="defaultTargetDataSource" ref="tmpDataSource"/>
+        <property name="targetDataSources">
+            <map>
+                <entry key="tmp" value-ref="tmpDataSource"/>
+                <entry key="pub" value-ref="pubDataSource"/>
+            </map>
+        </property>
+	</bean>
+	
+	<bean id="tmpDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${tmp.c3p0.driverClassName}"/>
+		<property name="jdbcUrl" value="${tmp.c3p0.url}"/>
+		<property name="user" value="${tmp.c3p0.username}"/>
+		<property name="password" value="${tmp.c3p0.password}"/>
+		<property name="initialPoolSize" value="${tmp.c3p0.initialPoolSize}"/>
+		<property name="maxPoolSize" value="${tmp.c3p0.maxPoolSize}"/>
+		<property name="minPoolSize" value="${tmp.c3p0.minPoolSize}"/>
+		<property name="acquireIncrement" value="${tmp.c3p0.acquireIncrement}"/>
+		<property name="maxIdleTime" value="${tmp.c3p0.maxIdleTime}"/>
+		<property name="maxStatements" value="${tmp.c3p0.maxStatements}"/>
+		<property name="maxStatementsPerConnection" value="${tmp.c3p0.maxStatementsPerConnection}"/>
+		<!-- 每60秒检查所有连接池中的空闲连接。Default: 0 -->
+		<property name="idleConnectionTestPeriod" value="${tmp.c3p0.idleConnectionTestPeriod}" />
+		<!--如果设为true那么在取得连接的同时将校验连接的有效性。Default: false -->
+		<property name="testConnectionOnCheckin" value="${tmp.c3p0.testConnectionOnCheckin}" />
+		<!--c3p0将建一张名为Test的空表，并使用其自带的查询语句进行测试。如果定义了这个参数那么 属性preferredTestQuery将被忽略。你不能在这张Test表上进行任何操作，它将只供c3p0测试 
+			使用。Default: null -->
+		<property name="automaticTestTable" value="Test" />
+	</bean>
+	
+	<bean id="pubDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${pub.c3p0.driverClassName}"/>
+		<property name="jdbcUrl" value="${pub.c3p0.url}"/>
+		<property name="user" value="${pub.c3p0.username}"/>
+		<property name="password" value="${pub.c3p0.password}"/>
+		<property name="initialPoolSize" value="${pub.c3p0.initialPoolSize}"/>
+		<property name="maxPoolSize" value="${pub.c3p0.maxPoolSize}"/>
+		<property name="minPoolSize" value="${pub.c3p0.minPoolSize}"/>
+		<property name="acquireIncrement" value="${pub.c3p0.acquireIncrement}"/>
+		<property name="maxIdleTime" value="${pub.c3p0.maxIdleTime}"/>
+		<property name="maxStatements" value="${pub.c3p0.maxStatements}"/>
+		<property name="maxStatementsPerConnection" value="${pub.c3p0.maxStatementsPerConnection}"/>
+		<!-- 每60秒检查所有连接池中的空闲连接。Default: 0 -->
+		<property name="idleConnectionTestPeriod" value="${pub.c3p0.idleConnectionTestPeriod}" />
+		<!--如果设为true那么在取得连接的同时将校验连接的有效性。Default: false -->
+		<property name="testConnectionOnCheckin" value="${pub.c3p0.testConnectionOnCheckin}" />
+		<!--c3p0将建一张名为Test的空表，并使用其自带的查询语句进行测试。如果定义了这个参数那么 属性preferredTestQuery将被忽略。你不能在这张Test表上进行任何操作，它将只供c3p0测试 
+			使用。Default: null -->
+		<property name="automaticTestTable" value="Test" />
+	</bean>
+	
+	<bean id="mybatisBatchSupport" class="com.dji.dava.data.mybatis.MybatisBatchSupport">
+		<property name="ssf" ref="sqlSessionFactory"></property>
+		<property name="batchNum" value="300"></property>
+	</bean>
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="epmsDSProxy" />
+		<!-- 配置扫描Domain的包路径 -->
+		<property name="typeAliasesPackage" value="com.epms.pojo" />
+		<!-- 配置mybatis配置文件的位置 -->
+		<property name="configLocation" value="classpath:META-INF/mybatis/sql-map-config.xml" />
+		<!-- 配置扫描Mapper XML的位置 -->
+<!-- 	<property name="mapperLocations"value="classpath*:com/epms/**/*Mapper.xml,classpath*:sqlMap/**/*.xml" /> -->
+		<property name="mapperLocations" >
+			<list>
+				<value>classpath*:com/epms/**/*Mapper.xml</value>
+				<value>classpath*:sqlMap/com/dji/**/*.xml</value>
+				<value>classpath*:sqlMap/db/com/dji/**/*.xml</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- 配置扫描Mapper接口的包路径 epms库 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+		<property name="basePackage" value="com.epms.**.mapper,com.epms.**.mapper.base,com.dji.epms.mapper.**" />
+	</bean>
+ 
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="sqlSessionFactory" />
+	</bean>
+
+	<!-- (事务管理)transaction manager -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="epmsDSProxy" />
+	</bean>
+
+	<!-- enable transaction demarcation with annotations -->
+	<tx:annotation-driven transaction-manager="transactionManager" />  
+	
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="remove*" propagation="REQUIRED" />
+			<tx:method name="accept*" propagation="REQUIRED" />
+			<tx:method name="reject*" propagation="REQUIRED" />
+			<tx:method name="execute*" propagation="REQUIRED" />
+			<tx:method name="del*" propagation="REQUIRED" />
+			<tx:method name="recover*" propagation="REQUIRED" />
+			<tx:method name="sync*" propagation="REQUIRED" />
+			<tx:method name="*" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:pointcut id="txPointcut"
+			expression="execution(public * com.epms.*.service.*.*(..))" />
+		<aop:advisor pointcut-ref="txPointcut" advice-ref="txAdvice" />
+	</aop:config>
+
+
+</beans>
